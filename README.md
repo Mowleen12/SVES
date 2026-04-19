@@ -23,6 +23,30 @@ npx serve .
 
 ---
 
+## 🎯 Project Breakdown
+
+### Chosen Vertical
+**Vertical:** Smart Venues & Urban Mobility.  
+SVES transforms large-scale event spaces (stadiums, convention centers) into intelligent ecosystems, solving the "last-mile" navigation challenge within complex venues.
+
+### Approach and Logic
+The system uses a **Digital Twin** approach. We simulate a fleet of IoT-enabled "antigravity pods" that respond to real-world event data. 
+- **Data-Driven:** The simulation follows authentic ingress/egress profiles from historical datasets (FIFA WC, IPL 2023).
+- **AI Core:** Instead of static scripts, Gemini 2.0 Flash acts as the "Fleet Mind," dynamically recalculating routes and predicting crowd bottlenecks before they happen by analyzing the real-time telemetry from the `venue-dataset.js`.
+
+### How it Works
+1. **Ingestion:** Real-world venue datasets (seating maps, crowd flow curves) feed into the simulation engine.
+2. **Analysis:** Gemini analyzes the live state to optimize pod distribution and predict future congestion.
+3. **Visualization:** A dark-glassmorphism dashboard provides live telemetry, 3D AR mapping (Three.js), and a responsive booking kiosk.
+4. **Execution:** The architecture is designed for full-stack deployment via Docker and Google Cloud Run.
+
+### Assumptions
+- **Connectivity:** Assumes a stable internet connection for real-time Gemini AI processing.
+- **Hardware:** Assumes user devices support WebGL for the 3D AR Navigator components.
+- **Environment:** Designed for indoor or semi-enclosed large-space environments optimal for electromagnetic levitation arrays.
+
+---
+
 ## ✨ Features
 
 | Feature | Description |
