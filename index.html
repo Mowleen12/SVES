@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SVES — Smart Venue Experience System | NovaSphere Arena</title>
+  <meta name="description"
+    content="Futuristic antigravity pod transport system for large-scale venues. AI-powered routing, real-time crowd coordination, and AR navigation for NovaSphere Arena." />
+  <meta name="theme-color" content="#030c1a" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="stylesheet" href="css/main.css" />
+  <!-- CDN: Chart.js + Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.160.0/examples/jsm/webxr/ARButton.js" type="module"></script>
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--  NAVIGATION                                         -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <nav id="navbar">
+      <a class="nav-logo" href="#" onclick="navigateTo('dashboard');return false;">
+        <div class="nav-logo-icon"><i data-lucide="hexagon" style="width:20px;height:20px;color:#030c1a"></i></div>
+        <div class="nav-logo-text">S<span>VES</span></div>
+      </a>
+
+      <div class="nav-items">
+        <button class="nav-item active" data-page="dashboard">
+          <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span> Dashboard
+        </button>
+        <button class="nav-item" data-page="booking">
+          <span class="nav-icon"><i data-lucide="calendar-plus"></i></span> Book Pod
+        </button>
+        <button class="nav-item" data-page="analytics">
+          <span class="nav-icon"><i data-lucide="bar-chart-3"></i></span> Analytics
+        </button>
+        <button class="nav-item" data-page="ar">
+          <span class="nav-icon"><i data-lucide="map"></i></span> AR Navigator
+        </button>
+        <button class="nav-item" data-page="architecture">
+          <span class="nav-icon"><i data-lucide="network"></i></span> Architecture
+        </button>
+      </div>
+
+      <div class="nav-status">
+        <span class="status-dot"></span>
+        <span class="status-text">ALL SYSTEMS NOMINAL</span>
+        <span class="live-clock" id="nav-time">00:00:00</span>
+      </div>
+    </nav>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--  MAIN CONTENT                                       -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <main id="main-content">
+
+      <!-- ─────────────────────────────────────────────────── -->
+      <!--  PAGE: DASHBOARD                                    -->
+      <!-- ─────────────────────────────────────────────────── -->
+      <section id="page-dashboard" class="page active">
+        <div class="page-header">
+          <h1><i data-lucide="gauge" class="page-header-icon"></i> Operations Dashboard</h1>
+          <p class="page-subtitle">NovaSphere Arena — Live antigravity pod fleet &amp; crowd intelligence feed</p>
+        </div>
+
+        <!-- KPI Row -->
+        <div class="kpi-grid">
+          <div class="kpi-card" style="--accent-color: var(--green)">
+            <span class="kpi-icon"><i data-lucide="rocket"></i></span>
+            <div class="kpi-label">Active Pods</div>
+            <div class="kpi-value"><span id="kpi-pods">—</span></div>
+            <div class="kpi-change up"><i data-lucide="trending-up" style="width:12px;height:12px"></i> 2 from last hour
+            </div>
+          </div>
+          <div class="kpi-card" style="--accent-color: var(--cyan)">
+            <span class="kpi-icon"><i data-lucide="users"></i></span>
+            <div class="kpi-label">Venue Occupancy</div>
+            <div class="kpi-value" style="font-size:1.4rem"><span id="kpi-occupancy">—</span></div>
+            <div class="kpi-change">/ 80,000 capacity</div>
+          </div>
+          <div class="kpi-card" style="--accent-color: var(--gold)">
+            <span class="kpi-icon"><i data-lucide="timer"></i></span>
+            <div class="kpi-label">Avg Wait Time</div>
+            <div class="kpi-value" style="font-size:1.5rem"><span id="kpi-wait">—</span></div>
+            <div class="kpi-change down"><i data-lucide="trending-down" style="width:12px;height:12px"></i> 0.4 min
+              improved</div>
+          </div>
+          <div class="kpi-card" style="--accent-color: var(--purple)">
+            <span class="kpi-icon"><i data-lucide="battery-charging"></i></span>
+            <div class="kpi-label">Fleet Battery Avg</div>
+            <div class="kpi-value"><span id="kpi-battery">—</span></div>
+            <div class="kpi-change up"><i data-lucide="trending-up" style="width:12px;height:12px"></i> Optimal range
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="dashboard-grid">
+          <!-- Stadium Map -->
+          <div class="card dashboard-map-card">
+            <div class="card-header">
+              <i data-lucide="map-pin" style="color:var(--cyan);width:16px;height:16px;flex-shrink:0"></i>
+              <span class="card-title">Live Venue Map — Pod Telemetry</span>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+                <span class="canvas-live-dot"></span>
+                <span style="font-size:.72rem;font-family:var(--font-mono);color:#EF4444">LIVE</span>
+              </div>
+            </div>
+            <div class="card-body" style="padding:12px">
+              <div class="stadium-canvas-wrapper">
+                <canvas id="stadiumCanvas"></canvas>
+              </div>
+              <!-- Legend -->
+              <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;padding:0 4px">
+                <div style="font-size:.72rem;color:var(--text-muted)">Zone Legend:</div>
+                <div id="zone-legend" style="display:flex;flex-wrap:wrap;gap:12px">
+                  <!-- filled by JS via zones config -->
+                </div>
+                <div style="margin-left:auto;display:flex;gap:12px;align-items:center">
+                  <span style="display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text-muted)">
+                    <span
+                      style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)"></span>
+                    Active pod
+                  </span>
+                  <span style="display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text-muted)">
+                    <span
+                      style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--purple);box-shadow:0 0 6px var(--purple)"></span>
+                    Docked
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Fleet + Alerts -->
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <!-- Fleet Status -->
+            <div class="card">
+              <div class="card-header">
+                <i data-lucide="satellite" style="color:var(--green);width:15px;height:15px;flex-shrink:0"></i>
+                <span class="card-title">Pod Fleet Status</span>
+                <span style="margin-left:auto;font-size:.72rem;font-family:var(--font-mono);color:var(--text-muted)">24
+                  UNITS</span>
+              </div>
+              <div class="card-body" style="padding:12px">
+                <div class="pod-list" id="pod-fleet-list">
+                  <div class="spinner" style="margin:20px auto"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Alerts Feed -->
+            <div class="card" style="flex:1">
+              <div class="card-header">
+                <i data-lucide="bell-ring" style="color:var(--gold);width:15px;height:15px;flex-shrink:0"></i>
+                <span class="card-title">Live Alerts</span>
+                <span style="margin-left:auto;display:flex;align-items:center;gap:4px">
+                  <span class="canvas-live-dot"></span>
+                  <span style="font-size:.68rem;font-family:var(--font-mono);color:#EF4444">STREAM</span>
+                </span>
+              </div>
+              <div class="card-body" style="padding:12px">
+                <div class="alerts-feed" id="alerts-feed"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Queue Panel -->
+        <div class="card" style="margin-top:16px">
+          <div class="card-header">
+            <i data-lucide="clock" style="color:var(--cyan);width:15px;height:15px;flex-shrink:0"></i>
+            <span class="card-title">Zone Queue Status &amp; Wait Times</span>
+            <span style="margin-left:auto;font-size:.72rem;color:var(--text-muted)">Real-time crowd density</span>
+          </div>
+          <div class="card-body">
+            <div class="queue-grid">
+              <!-- Injected by _updateQueuePanel during density updates -->
+              <div id="queue-zones-container" style="display:contents">
+                <!-- filled later -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─────────────────────────────────────────────────── -->
+      <!--  PAGE: BOOKING                                      -->
+      <!-- ─────────────────────────────────────────────────── -->
+      <section id="page-booking" class="page">
+        <div class="page-header">
+          <h1><i data-lucide="calendar-plus" class="page-header-icon"></i> Book an Antigravity Pod</h1>
+          <p class="page-subtitle">AI-optimised routing · Instant availability · Seamless AR boarding pass</p>
+        </div>
+
+        <div class="booking-layout">
+          <!-- Wizard -->
+          <div class="booking-wizard">
+            <!-- Progress -->
+            <div class="wizard-progress">
+              <div class="wizard-step active" id="ws-1">
+                <div class="step-circle">1</div>
+                <div class="step-line"></div>
+              </div>
+              <div class="wizard-step" id="ws-2">
+                <div class="step-circle">2</div>
+                <div class="step-line"></div>
+              </div>
+              <div class="wizard-step" id="ws-3">
+                <div class="step-circle">3</div>
+                <div class="step-line"></div>
+              </div>
+              <div class="wizard-step" id="ws-4">
+                <div class="step-circle">4</div>
+                <div class="step-line"></div>
+              </div>
+              <div class="wizard-step" id="ws-5">
+                <div class="step-circle">5</div>
+              </div>
+            </div>
+
+            <!-- Step body -->
+            <div class="wizard-body" id="wizard-body"></div>
+
+            <!-- Actions -->
+            <div class="wizard-actions" id="wizard-actions">
+              <button class="btn btn-ghost" id="wizard-prev" onclick="BookingSystem.prev()" style="display:none">
+                <i data-lucide="arrow-left" style="width:15px;height:15px"></i> Back
+              </button>
+              <button class="btn btn-primary" id="wizard-next" onclick="BookingSystem.next()" disabled>
+                Continue <i data-lucide="arrow-right" style="width:15px;height:15px"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Summary Panel -->
+          <div class="booking-summary">
+            <div class="summary-title">Journey Summary</div>
+
+            <div class="summary-row">
+              <span class="summary-label"><i data-lucide="map-pin" class="summary-icon"></i> Origin</span>
+              <span class="summary-value" id="sum-origin">Not selected</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label"><i data-lucide="crosshair" class="summary-icon"></i> Destination</span>
+              <span class="summary-value" id="sum-dest">Not selected</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label"><i data-lucide="clock" class="summary-icon"></i> Departure</span>
+              <span class="summary-value" id="sum-time">Not selected</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label"><i data-lucide="rocket" class="summary-icon"></i> Pod Class</span>
+              <span class="summary-value" id="sum-class">Not selected</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label"><i data-lucide="timer" class="summary-icon"></i> Est. Travel</span>
+              <span class="summary-value" id="sum-est">—</span>
+            </div>
+
+            <div class="ai-suggestion-box" id="sum-ai-box">
+              <div class="ai-suggestion-header"><i data-lucide="cpu" style="width:13px;height:13px"></i> AI Insight
+              </div>
+              <div class="ai-suggestion-text" id="sum-ai-text">
+                Complete your journey details to receive AI-powered routing suggestions.
+              </div>
+            </div>
+
+            <!-- Mini venue diagram -->
+            <div style="margin-top:20px">
+              <div
+                style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em">
+                Venue Zones</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                <div id="bk-zone-legend" style="display:contents"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─────────────────────────────────────────────────── -->
+      <!--  PAGE: ANALYTICS                                    -->
+      <!-- ─────────────────────────────────────────────────── -->
+      <section id="page-analytics" class="page">
+        <div class="page-header">
+          <h1><i data-lucide="bar-chart-3" class="page-header-icon"></i> Predictive Analytics</h1>
+          <p class="page-subtitle">Gemini AI-powered crowd intelligence · Real-time venue metrics · Staff optimisation
+          </p>
+        </div>
+
+        <!-- Analytics KPIs -->
+        <div class="analytics-kpi-grid">
+          <div class="kpi-card" style="--accent-color:var(--cyan)">
+            <span class="kpi-icon"><i data-lucide="activity"></i></span>
+            <div class="kpi-label">Avg Crowd Density</div>
+            <div class="kpi-value" style="font-size:1.6rem">61.6%</div>
+            <div class="kpi-change up"><i data-lucide="trending-up" style="width:12px;height:12px"></i> +3.2% vs last
+              hour</div>
+          </div>
+          <div class="kpi-card" style="--accent-color:var(--purple)">
+            <span class="kpi-icon"><i data-lucide="rocket"></i></span>
+            <div class="kpi-label">Pod Utilisation</div>
+            <div class="kpi-value" style="font-size:1.6rem">82.3%</div>
+            <div class="kpi-change up"><i data-lucide="trending-up" style="width:12px;height:12px"></i> Optimal range
+            </div>
+          </div>
+          <div class="kpi-card" style="--accent-color:var(--green)">
+            <span class="kpi-icon"><i data-lucide="zap"></i></span>
+            <div class="kpi-label">Energy Efficiency</div>
+            <div class="kpi-value" style="font-size:1.6rem">94.1%</div>
+            <div class="kpi-change up"><i data-lucide="trending-up" style="width:12px;height:12px"></i> +2.1% above
+              baseline</div>
+          </div>
+          <div class="kpi-card" style="--accent-color:var(--gold)">
+            <span class="kpi-icon"><i data-lucide="target"></i></span>
+            <div class="kpi-label">AI Accuracy (30 min)</div>
+            <div class="kpi-value" style="font-size:1.6rem">91.4%</div>
+            <div class="kpi-change">Prediction confidence</div>
+          </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="analytics-charts-grid">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Zone Crowd Density (last 60 min)</span>
+              <span style="margin-left:auto;font-size:.7rem;font-family:var(--font-mono);color:var(--green)">●
+                LIVE</span>
+            </div>
+            <div class="card-body">
+              <div class="chart-wrapper">
+                <canvas id="chart-crowd"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Wait Times by Zone</span>
+            </div>
+            <div class="card-body">
+              <div class="chart-wrapper">
+                <canvas id="chart-wait"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="analytics-bottom-grid" style="margin-bottom:16px">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Fleet Status Distribution</span>
+            </div>
+            <div class="card-body">
+              <div class="chart-wrapper" style="height:220px">
+                <canvas id="chart-pod-status"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Passenger Throughput</span>
+              <span style="margin-left:auto;font-size:.7rem;font-family:var(--font-mono);color:var(--green)">●
+                LIVE</span>
+            </div>
+            <div class="card-body">
+              <div class="chart-wrapper" style="height:220px">
+                <canvas id="chart-throughput"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Insights + Prediction Table -->
+        <div class="analytics-bottom-grid">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">2-Hour Crowd Forecast</span>
+              <span style="margin-left:auto"><span class="ai-badge"><i data-lucide="sparkles"
+                    style="width:11px;height:11px"></i> Gemini</span></span>
+            </div>
+            <div class="card-body" style="padding:12px">
+              <table class="prediction-table">
+                <thead>
+                  <tr>
+                    <th>Zone</th>
+                    <th>Current</th>
+                    <th>Predicted (60 min)</th>
+                    <th>Avg Wait</th>
+                    <th>Congestion</th>
+                  </tr>
+                </thead>
+                <tbody id="prediction-table-body">
+                  <tr>
+                    <td colspan="5" style="text-align:center;padding:20px">
+                      <div class="spinner" style="margin:0 auto;width:20px;height:20px"></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card ai-insights-panel">
+            <div class="card-header ai-insights-header">
+              <i data-lucide="cpu" style="color:var(--purple);width:18px;height:18px;flex-shrink:0"></i>
+              <span class="card-title">Gemini AI Insights</span>
+              <span style="margin-left:auto"><span class="ai-badge"><i data-lucide="radio"
+                    style="width:11px;height:11px"></i> Live</span></span>
+            </div>
+            <div id="ai-insights-list" style="padding:16px">
+              <div class="spinner" style="margin:20px auto"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─────────────────────────────────────────────────── -->
+      <!--  PAGE: AR NAVIGATOR                                 -->
+      <!-- ─────────────────────────────────────────────────── -->
+      <section id="page-ar" class="page">
+        <div class="page-header">
+          <h1><i data-lucide="map" class="page-header-icon"></i> AR Navigator — 3D Venue Map</h1>
+          <p class="page-subtitle">Interactive Three.js scene · Real-time pod tracking overlays · Drag to orbit · Scroll
+            to zoom</p>
+        </div>
+
+        <!-- 3D Scene -->
+        <div class="card" style="overflow:visible">
+          <div class="card-header">
+            <i data-lucide="box" style="color:var(--cyan);width:16px;height:16px;flex-shrink:0"></i>
+            <span class="card-title">NovaSphere Arena — Live 3D View</span>
+            <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
+              <span class="canvas-live-dot"></span>
+              <span style="font-size:.72rem;font-family:var(--font-mono);color:#EF4444">LIVE PODS</span>
+            </span>
+          </div>
+          <div style="padding:12px">
+            <div id="ar-container">
+              <div
+                style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:.85rem">
+                Loading 3D scene…<span class="spinner" style="margin-left:12px"></span>
+              </div>
+            </div>
+
+            <!-- AR Controls -->
+            <div class="ar-controls">
+              <button class="ar-control-btn" onclick="ARScene.resetCamera()"><i data-lucide="rotate-ccw"
+                  style="width:13px;height:13px"></i> Reset View</button>
+              <button class="ar-control-btn" onclick="ARScene.topView()"><i data-lucide="arrow-down-to-line"
+                  style="width:13px;height:13px"></i> Top View</button>
+              <button class="ar-control-btn" onclick="ARScene.sideView()"><i data-lucide="flip-horizontal"
+                  style="width:13px;height:13px"></i> Side View</button>
+              <button class="ar-control-btn" onclick="ARScene.focusZone('Alpha')"><i data-lucide="focus"
+                  style="width:13px;height:13px"></i> Alpha Zone</button>
+              <button class="ar-control-btn" onclick="ARScene.focusZone('Beta')"><i data-lucide="focus"
+                  style="width:13px;height:13px"></i> Beta Zone</button>
+              <button class="ar-control-btn" onclick="ARScene.focusZone('Gamma')"><i data-lucide="focus"
+                  style="width:13px;height:13px"></i> Gamma Zone</button>
+              <button class="ar-control-btn" onclick="ARScene.focusZone('Delta')"><i data-lucide="focus"
+                  style="width:13px;height:13px"></i> Delta Zone</button>
+              <button class="ar-control-btn" onclick="ARScene.focusZone('Omega')"><i data-lucide="focus"
+                  style="width:13px;height:13px"></i> Omega Hub</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- AR Info Cards -->
+        <div class="ar-info-grid">
+          <div class="card" style="text-align:center;padding:20px">
+            <div class="ar-info-icon" style="color:var(--cyan)"><i data-lucide="rocket"></i></div>
+            <div style="font-size:1.2rem;font-weight:700;color:var(--cyan);font-family:var(--font-mono)">12</div>
+            <div style="font-size:.78rem;color:var(--text-muted);margin-top:4px">Pods Visible in Scene</div>
+          </div>
+          <div class="card" style="text-align:center;padding:20px">
+            <div class="ar-info-icon" style="color:var(--purple)"><i data-lucide="radio-tower"></i></div>
+            <div style="font-size:1.2rem;font-weight:700;color:var(--purple);font-family:var(--font-mono)">2.5m</div>
+            <div style="font-size:.78rem;color:var(--text-muted);margin-top:4px">Hover Altitude (EM Field)</div>
+          </div>
+          <div class="card" style="text-align:center;padding:20px">
+            <div class="ar-info-icon" style="color:var(--green)"><i data-lucide="zap"></i></div>
+            <div style="font-size:1.2rem;font-weight:700;color:var(--green);font-family:var(--font-mono)">60 Hz</div>
+            <div style="font-size:.78rem;color:var(--text-muted);margin-top:4px">Levitation Field Frequency</div>
+          </div>
+        </div>
+
+        <!-- How AR Works section -->
+        <div class="card" style="margin-top:16px">
+          <div class="card-header">
+            <span class="card-title">How AR Navigation Works</span>
+          </div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+              <div class="how-ar-step">
+                <div class="how-ar-icon"><i data-lucide="smartphone"></i></div>
+                <div style="font-weight:600;font-size:.9rem">Open Mobile App</div>
+                <div style="font-size:.8rem;color:var(--text-muted)">Launch the SVES AR companion app on your
+                  smartphone. The app connects to the venue IoT mesh via BLE beacon triangulation.</div>
+              </div>
+              <div class="how-ar-step">
+                <div class="how-ar-icon"><i data-lucide="scan-line"></i></div>
+                <div style="font-weight:600;font-size:.9rem">Point at Any Pod</div>
+                <div style="font-size:.8rem;color:var(--text-muted)">The camera activates AR overlays showing pod ID,
+                  capacity, remaining battery, and estimated departure time in real-time.</div>
+              </div>
+              <div class="how-ar-step">
+                <div class="how-ar-icon"><i data-lucide="navigation"></i></div>
+                <div style="font-weight:600;font-size:.9rem">Follow AR Path</div>
+                <div style="font-size:.8rem;color:var(--text-muted)">Turn-by-turn AR arrows guide you through the venue
+                  to your assigned pod boarding station, avoiding congested corridors.</div>
+              </div>
+              <div class="how-ar-step">
+                <div class="how-ar-icon"><i data-lucide="rocket"></i></div>
+                <div style="font-weight:600;font-size:.9rem">Board &amp; Go</div>
+                <div style="font-size:.8rem;color:var(--text-muted)">Scan your booking QR on arrival. The pod door opens
+                  automatically. AI-managed levitation takes you to your destination.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─────────────────────────────────────────────────── -->
+      <!--  PAGE: ARCHITECTURE                                 -->
+      <!-- ─────────────────────────────────────────────────── -->
+      <section id="page-architecture" class="page">
+        <div class="page-header">
+          <h1><i data-lucide="network" class="page-header-icon"></i> System Architecture</h1>
+          <p class="page-subtitle">Microservices design · Google Cloud Run deployment · IoT &amp; AI integration roadmap
+          </p>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header">
+            <span class="card-title">System Architecture Diagram</span>
+          </div>
+          <div class="card-body" style="overflow-x:auto">
+            <svg id="arch-diagram" viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg"
+              style="width:100%;min-width:700px;font-family:'Outfit',sans-serif;display:block">
+              <defs>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L6,3 z" fill="rgba(0,245,255,0.5)" />
+                </marker>
+              </defs>
+
+              <!-- Background -->
+              <rect width="900" height="480" fill="#030c1a" />
+              <rect width="900" height="480" fill="url(#grid-pattern)" opacity="0.03" />
+
+              <!-- ── Layer: Clients ── -->
+              <text x="450" y="28" text-anchor="middle" fill="#3D6080" font-size="10" letter-spacing="2">CLIENT
+                LAYER</text>
+              <rect x="50" y="38" width="120" height="52" rx="8" fill="#0a1628" stroke="#00F5FF" stroke-width="1.5"
+                filter="url(#glow)" />
+              <text x="110" y="58" text-anchor="middle" fill="#00F5FF" font-size="11" font-weight="bold">◉ Mobile</text>
+              <text x="110" y="76" text-anchor="middle" fill="#7DA8CC" font-size="9">AR App (Flutter)</text>
+
+              <rect x="200" y="38" width="120" height="52" rx="8" fill="#0a1628" stroke="#8B5CF6" stroke-width="1.5"
+                filter="url(#glow)" />
+              <text x="260" y="58" text-anchor="middle" fill="#8B5CF6" font-size="11" font-weight="bold">⬜ Web
+                Portal</text>
+              <text x="260" y="76" text-anchor="middle" fill="#7DA8CC" font-size="9">Ops Dashboard</text>
+
+              <rect x="350" y="38" width="120" height="52" rx="8" fill="#0a1628" stroke="#EC4899" stroke-width="1.5"
+                filter="url(#glow)" />
+              <text x="410" y="58" text-anchor="middle" fill="#EC4899" font-size="11" font-weight="bold">◈ Staff
+                App</text>
+              <text x="410" y="76" text-anchor="middle" fill="#7DA8CC" font-size="9">Native + AR HUD</text>
+
+              <rect x="500" y="38" width="120" height="52" rx="8" fill="#0a1628" stroke="#F59E0B" stroke-width="1.5"
+                filter="url(#glow)" />
+              <text x="560" y="58" text-anchor="middle" fill="#F59E0B" font-size="11" font-weight="bold">▣
+                Displays</text>
+              <text x="560" y="76" text-anchor="middle" fill="#7DA8CC" font-size="9">In-venue Screens</text>
+
+              <rect x="650" y="38" width="120" height="52" rx="8" fill="#0a1628" stroke="#10B981" stroke-width="1.5"
+                filter="url(#glow)" />
+              <text x="710" y="58" text-anchor="middle" fill="#10B981" font-size="11" font-weight="bold">⊡
+                Ticketing</text>
+              <text x="710" y="76" text-anchor="middle" fill="#7DA8CC" font-size="9">3rd Party Integrations</text>
+
+              <!-- Arrows down to gateway -->
+              <line x1="110" y1="90" x2="370" y2="142" stroke="rgba(0,245,255,0.25)" stroke-width="1"
+                stroke-dasharray="4,3" marker-end="url(#arrow)" />
+              <line x1="260" y1="90" x2="400" y2="142" stroke="rgba(0,245,255,0.25)" stroke-width="1"
+                stroke-dasharray="4,3" marker-end="url(#arrow)" />
+              <line x1="410" y1="90" x2="440" y2="142" stroke="rgba(0,245,255,0.25)" stroke-width="1"
+                stroke-dasharray="4,3" marker-end="url(#arrow)" />
+              <line x1="560" y1="90" x2="490" y2="142" stroke="rgba(0,245,255,0.25)" stroke-width="1"
+                stroke-dasharray="4,3" marker-end="url(#arrow)" />
+              <line x1="710" y1="90" x2="530" y2="142" stroke="rgba(0,245,255,0.25)" stroke-width="1"
+                stroke-dasharray="4,3" marker-end="url(#arrow)" />
+
+              <!-- ── Layer: API Gateway ── -->
+              <text x="450" y="128" text-anchor="middle" fill="#3D6080" font-size="10" letter-spacing="2">GATEWAY
+                LAYER</text>
+              <rect x="250" y="138" width="400" height="48" rx="10" fill="#0d1f3a" stroke="#00F5FF" stroke-width="2"
+                filter="url(#glow)" />
+              <text x="450" y="158" text-anchor="middle" fill="#00F5FF" font-size="12" font-weight="bold">⬡ API Gateway
+                — Cloud Run</text>
+              <text x="450" y="177" text-anchor="middle" fill="#7DA8CC" font-size="9">Auth · Rate Limiting · Load
+                Balancing · WebSocket · REST / gRPC</text>
+
+              <!-- Arrows to microservices -->
+              <line x1="300" y1="186" x2="160" y2="234" stroke="rgba(0,245,255,0.2)" stroke-width="1"
+                stroke-dasharray="4,3" marker-end="url(#arrow)" />
+              <line x1="370" y1="186" x2="310" y2="234" stroke="rgba(0,245,255,0.2)" stroke-width="1"
+                stroke-dasharray="4,3" marker-end="url(#arrow)" />
+              <line x1="450" y1="186" x2="450" y2="234" stroke="rgba(0,245,255,0.2)" stroke-width="1"
+                stroke-dasharray="4,3" marker-end="url(#arrow)" />
+              <line x1="530" y1="186" x2="590" y2="234" stroke="rgba(0,245,255,0.2)" stroke-width="1"
+                stroke-dasharray="4,3" marker-end="url(#arrow)" />
+              <line x1="600" y1="186" x2="745" y2="234" stroke="rgba(0,245,255,0.2)" stroke-width="1"
+                stroke-dasharray="4,3" marker-end="url(#arrow)" />
+
+              <!-- ── Layer: Microservices ── -->
+              <text x="450" y="222" text-anchor="middle" fill="#3D6080" font-size="10" letter-spacing="2">MICROSERVICES
+                (CLOUD RUN)</text>
+
+              <!-- Pod Manager -->
+              <rect x="80" y="230" width="150" height="60" rx="8" fill="#0a1628" stroke="#00F5FF" stroke-width="1.5" />
+              <text x="155" y="250" text-anchor="middle" fill="#00F5FF" font-size="10" font-weight="bold">&#9661;
+                pod-manager</text>
+              <text x="155" y="265" text-anchor="middle" fill="#4A6484" font-size="8">Fleet state · Telemetry</text>
+              <text x="155" y="278" text-anchor="middle" fill="#4A6484" font-size="8">Emergency halt · MQTT</text>
+
+              <!-- Queue Optimizer -->
+              <rect x="240" y="230" width="150" height="60" rx="8" fill="#0a1628" stroke="#8B5CF6" stroke-width="1.5" />
+              <text x="315" y="250" text-anchor="middle" fill="#8B5CF6" font-size="10" font-weight="bold">&#9651;
+                queue-optimizer</text>
+              <text x="315" y="265" text-anchor="middle" fill="#4A6484" font-size="8">Dijkstra · ML balancing</text>
+              <text x="315" y="278" text-anchor="middle" fill="#4A6484" font-size="8">Real-time rerouting</text>
+
+              <!-- AI Routing -->
+              <rect x="395" y="230" width="150" height="60" rx="8" fill="#0a1628" stroke="#EC4899" stroke-width="1.5" />
+              <text x="470" y="250" text-anchor="middle" fill="#EC4899" font-size="10" font-weight="bold">&#9632;
+                ai-routing</text>
+              <text x="470" y="265" text-anchor="middle" fill="#4A6484" font-size="8">Gemini 2.0 Flash</text>
+              <text x="470" y="278" text-anchor="middle" fill="#4A6484" font-size="8">Crowd prediction · NLP</text>
+
+              <!-- Notification -->
+              <rect x="550" y="230" width="150" height="60" rx="8" fill="#0a1628" stroke="#F59E0B" stroke-width="1.5" />
+              <text x="625" y="250" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="bold">&#9670;
+                notification</text>
+              <text x="625" y="265" text-anchor="middle" fill="#4A6484" font-size="8">Push · SMS · AR alerts</text>
+              <text x="625" y="278" text-anchor="middle" fill="#4A6484" font-size="8">In-venue LCD dispatch</text>
+
+              <!-- Analytics -->
+              <rect x="700" y="230" width="150" height="60" rx="8" fill="#0a1628" stroke="#10B981" stroke-width="1.5" />
+              <text x="775" y="250" text-anchor="middle" fill="#10B981" font-size="10" font-weight="bold">&#9650;
+                analytics</text>
+              <text x="775" y="265" text-anchor="middle" fill="#4A6484" font-size="8">BigQuery streaming</text>
+              <text x="775" y="278" text-anchor="middle" fill="#4A6484" font-size="8">Dashboards · Reports</text>
+
+              <!-- Arrows to data layer -->
+              <line x1="155" y1="290" x2="320" y2="350" stroke="rgba(255,255,255,0.1)" stroke-width="1"
+                marker-end="url(#arrow)" />
+              <line x1="315" y1="290" x2="380" y2="350" stroke="rgba(255,255,255,0.1)" stroke-width="1"
+                marker-end="url(#arrow)" />
+              <line x1="470" y1="290" x2="450" y2="350" stroke="rgba(255,255,255,0.1)" stroke-width="1"
+                marker-end="url(#arrow)" />
+              <line x1="625" y1="290" x2="530" y2="350" stroke="rgba(255,255,255,0.1)" stroke-width="1"
+                marker-end="url(#arrow)" />
+              <line x1="775" y1="290" x2="600" y2="350" stroke="rgba(255,255,255,0.1)" stroke-width="1"
+                marker-end="url(#arrow)" />
+
+              <!-- ── Layer: Data ── -->
+              <text x="450" y="340" text-anchor="middle" fill="#3D6080" font-size="10" letter-spacing="2">DATA
+                LAYER</text>
+              <rect x="100" y="348" width="600" height="48" rx="10" fill="#0d1f3a" stroke="rgba(139,92,246,0.6)"
+                stroke-width="1.5" />
+              <text x="280" y="366" text-anchor="middle" fill="#8B5CF6" font-size="10" font-weight="bold">&#9670;
+                Firestore</text>
+              <text x="280" y="384" text-anchor="middle" fill="#4A6484" font-size="8">Pod · Booking · User state</text>
+              <text x="450" y="366" text-anchor="middle" fill="#EC4899" font-size="10" font-weight="bold">&#9632;
+                Pub/Sub</text>
+              <text x="450" y="384" text-anchor="middle" fill="#4A6484" font-size="8">IoT events · Real-time bus</text>
+              <text x="620" y="366" text-anchor="middle" fill="#10B981" font-size="10" font-weight="bold">&#9650;
+                BigQuery</text>
+              <text x="620" y="384" text-anchor="middle" fill="#4A6484" font-size="8">Analytics · ML datasets</text>
+
+              <!-- ── IoT Layer ── -->
+              <text x="450" y="420" text-anchor="middle" fill="#3D6080" font-size="10" letter-spacing="2">IOT SENSOR
+                MESH</text>
+              <rect x="100" y="428" width="600" height="44" rx="10" fill="#0d1f3a" stroke="rgba(0,245,255,0.3)"
+                stroke-width="1.5" />
+              <text x="221" y="447" text-anchor="middle" fill="#00F5FF" font-size="10">⬡ 1,247 Sensors</text>
+              <text x="221" y="463" text-anchor="middle" fill="#4A6484" font-size="8">BLE · UWB · LiDAR</text>
+              <text x="370" y="447" text-anchor="middle" fill="#00F5FF" font-size="10">&#11835; MQTT Broker</text>
+              <text x="370" y="463" text-anchor="middle" fill="#4A6484" font-size="8">Google Cloud IoT Edge</text>
+              <text x="536" y="447" text-anchor="middle" fill="#00F5FF" font-size="10">&#11044; 24 Pod Modules</text>
+              <text x="536" y="463" text-anchor="middle" fill="#4A6484" font-size="8">EM levitation · Cameras</text>
+              <text x="690" y="447" text-anchor="middle" fill="#00F5FF" font-size="10">&#9670; Digital Twin</text>
+              <text x="690" y="463" text-anchor="middle" fill="#4A6484" font-size="8">Real-time 3D simulation</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Bottom Grid: Tech Stack + Microservices + Roadmap -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+
+          <!-- Tech Stack -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Tech Stack</span>
+            </div>
+            <div class="card-body" style="padding:12px">
+              <div class="tech-stack-grid">
+                <div class="tech-card">
+                  <div class="tech-card-icon"><i data-lucide="cloud"></i></div>
+                  <div class="tech-card-name">Google Cloud Run</div>
+                  <div class="tech-card-role">Serverless microservices, auto-scale</div>
+                </div>
+                <div class="tech-card">
+                  <div class="tech-card-icon"><i data-lucide="cpu"></i></div>
+                  <div class="tech-card-name">Gemini 2.0 Flash</div>
+                  <div class="tech-card-role">AI routing, crowd prediction, NLP</div>
+                </div>
+                <div class="tech-card">
+                  <div class="tech-card-icon"><i data-lucide="database"></i></div>
+                  <div class="tech-card-name">Firestore + Pub/Sub</div>
+                  <div class="tech-card-role">Real-time state & event bus</div>
+                </div>
+                <div class="tech-card">
+                  <div class="tech-card-icon"><i data-lucide="bar-chart-2"></i></div>
+                  <div class="tech-card-name">BigQuery + Looker</div>
+                  <div class="tech-card-role">Streaming analytics & dashboards</div>
+                </div>
+                <div class="tech-card">
+                  <div class="tech-card-icon"><i data-lucide="smartphone"></i></div>
+                  <div class="tech-card-name">Flutter (Mobile)</div>
+                  <div class="tech-card-role">iOS & Android AR navigation app</div>
+                </div>
+                <div class="tech-card">
+                  <div class="tech-card-icon"><i data-lucide="radio-tower"></i></div>
+                  <div class="tech-card-name">MQTT over IoT Core</div>
+                  <div class="tech-card-role">Sub-10ms pod telemetry ingestion</div>
+                </div>
+                <div class="tech-card">
+                  <div class="tech-card-icon"><i data-lucide="shield-check"></i></div>
+                  <div class="tech-card-name">Firebase Auth + IAM</div>
+                  <div class="tech-card-role">Zero-trust identity layer</div>
+                </div>
+                <div class="tech-card">
+                  <div class="tech-card-icon"><i data-lucide="zap"></i></div>
+                  <div class="tech-card-name">Cloud CDN + Edge</div>
+                  <div class="tech-card-role">Sub-50ms global response times</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Roadmap Timeline -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Implementation Roadmap</span>
+            </div>
+            <div class="card-body">
+              <div class="timeline">
+                <div class="timeline-item" style="--phase-color:#00F5FF">
+                  <div class="timeline-phase">Phase 1 — Foundation</div>
+                  <div class="timeline-period">Weeks 1–4</div>
+                  <ul class="timeline-tasks">
+                    <li>Cloud Run + Firestore provisioning</li>
+                    <li>IoT sensor mesh hardware deployment</li>
+                    <li>MQTT pod telemetry protocol</li>
+                    <li>Auth service + API gateway</li>
+                  </ul>
+                </div>
+                <div class="timeline-item" style="--phase-color:#8B5CF6">
+                  <div class="timeline-phase">Phase 2 — Intelligence Layer</div>
+                  <div class="timeline-period">Weeks 5–8</div>
+                  <ul class="timeline-tasks">
+                    <li>Gemini API routing integration</li>
+                    <li>Queue optimization microservice</li>
+                    <li>BigQuery streaming analytics</li>
+                    <li>Digital twin simulation</li>
+                  </ul>
+                </div>
+                <div class="timeline-item" style="--phase-color:#EC4899">
+                  <div class="timeline-phase">Phase 3 — Attendee Experience</div>
+                  <div class="timeline-period">Weeks 9–12</div>
+                  <ul class="timeline-tasks">
+                    <li>Flutter AR mobile app build</li>
+                    <li>Pod booking + slot engine</li>
+                    <li>Push notification dispatch</li>
+                    <li>Staff HUD + emergency protocols</li>
+                  </ul>
+                </div>
+                <div class="timeline-item" style="--phase-color:#F59E0B">
+                  <div class="timeline-phase">Phase 4 — Hardening</div>
+                  <div class="timeline-period">Weeks 13–16</div>
+                  <ul class="timeline-tasks">
+                    <li>Load testing: 80K concurrent users</li>
+                    <li>Circuit breakers + failover</li>
+                    <li>Edge deployment &lt;100ms latency</li>
+                    <li>Staff training + venue integration</li>
+                  </ul>
+                </div>
+                <div class="timeline-item" style="--phase-color:#10B981">
+                  <div class="timeline-phase">Phase 5 — Launch</div>
+                  <div class="timeline-period">Weeks 17–20</div>
+                  <ul class="timeline-tasks">
+                    <li>Pilot event deployment (10K cap)</li>
+                    <li>Feedback loops into AI models</li>
+                    <li>CI/CD pipeline + monitoring</li>
+                    <li>Full 80K capacity rollout</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Microservices -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Cloud Run Microservices — Specs</span>
+          </div>
+          <div class="card-body" style="padding:12px">
+            <div class="ms-grid">
+              <div class="ms-card" style="--ms-color:#00F5FF">
+                <div class="ms-name">pod-manager</div>
+                <div class="ms-desc">Fleet state machine, MQTT telemetry ingestion, emergency halt broadcast, levitation
+                  field control.</div>
+                <div class="ms-specs">2 vCPU · 512MB · min 2 instances</div>
+              </div>
+              <div class="ms-card" style="--ms-color:#8B5CF6">
+                <div class="ms-name">queue-optimizer</div>
+                <div class="ms-desc">Dijkstra + ML-based crowd load balancing. Real-time rerouting triggered by density
+                  thresholds.</div>
+                <div class="ms-specs">4 vCPU · 1GB · autoscale 2–20</div>
+              </div>
+              <div class="ms-card" style="--ms-color:#EC4899">
+                <div class="ms-name">ai-routing</div>
+                <div class="ms-desc">Gemini 2.0 Flash integration for optimal route computation, crowd predictions,
+                  anomaly detection.</div>
+                <div class="ms-specs">2 vCPU · 1GB · min 1 instance</div>
+              </div>
+              <div class="ms-card" style="--ms-color:#F59E0B">
+                <div class="ms-name">notification</div>
+                <div class="ms-desc">Push, SMS, WebSocket dispatch. In-venue LCD screen refresh. AR overlay triggers via
+                  BLE beacon mesh.</div>
+                <div class="ms-specs">1 vCPU · 256MB · autoscale 1–10</div>
+              </div>
+              <div class="ms-card" style="--ms-color:#10B981">
+                <div class="ms-name">analytics-ingestion</div>
+                <div class="ms-desc">BigQuery streaming inserts. Real-time Looker dashboard updates. ML dataset pipeline
+                  management.</div>
+                <div class="ms-specs">2 vCPU · 512MB · autoscale 1–8</div>
+              </div>
+              <div class="ms-card" style="--ms-color:#7DA8CC">
+                <div class="ms-name">auth-service</div>
+                <div class="ms-desc">JWT token issuance, Firebase Auth bridge, role-based access for Staff / Attendee /
+                  Admin tiers.</div>
+                <div class="ms-specs">1 vCPU · 256MB · min 2 instances</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!--  SCRIPTS                                               -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <script src="data/venue-dataset.js"></script>
+  <script src="config/sves-config.js"></script>
+  <script src="js/gemini.js"></script>
+  <script src="js/simulation.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/booking.js"></script>
+  <script src="js/ar-map.js"></script>
+  <script src="js/app.js"></script>
+  <script>lucide.createIcons();</script>
+
+  <script>
+    // ── Inline boot: build dynamic zone legend + queue panel ──
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // Zone legend row on dashboard
+      const legend = document.getElementById('zone-legend');
+      if (legend) {
+        legend.innerHTML = SVES_CONFIG.ZONES.map(z =>
+          `<span style="display:flex;align-items:center;gap:4px;font-size:.7rem;color:${z.color}">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${z.color};box-shadow:0 0 6px ${z.color}"></span>
+        ${z.name}
+      </span>`
+        ).join('');
+      }
+
+      // Queue zones panel (static shell — updated dynamically)
+      const queueContainer = document.getElementById('queue-zones-container');
+      if (queueContainer) {
+        // Replace with actual zone cards
+        const parent = queueContainer.parentElement;
+        parent.innerHTML = '';
+        parent.classList.add('queue-grid');
+        SVES_CONFIG.ZONES.forEach(zone => {
+          const div = document.createElement('div');
+          div.className = 'queue-zone-card';
+          div.innerHTML = `
+        <div class="queue-zone-name" style="color:${zone.color}">${zone.name}</div>
+        <div class="queue-bar-wrapper">
+          <div class="queue-bar-fill" id="queue-bar-${zone.id}" style="width:50%;background:${zone.color}"></div>
+        </div>
+        <div class="queue-wait" id="queue-wait-${zone.id}">—</div>
+        <div class="queue-wait-label">avg wait</div>`;
+          parent.appendChild(div);
+        });
+      }
+
+      // Booking page zone legend sidebar
+      const bkLegend = document.getElementById('bk-zone-legend');
+      if (bkLegend) {
+        bkLegend.innerHTML = SVES_CONFIG.ZONES.map(zone =>
+          `<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--bg-surface-2);border-radius:6px;border:1px solid var(--border-subtle)">
+        <span style="width:8px;height:8px;border-radius:50%;background:${zone.color};flex-shrink:0;box-shadow:0 0 5px ${zone.color}"></span>
+        <span style="font-size:.75rem;color:var(--text-secondary)">${zone.name}</span>
+      </div>`
+        ).join('');
+      }
+    });
+  </script>
+</body>
+
+</html>

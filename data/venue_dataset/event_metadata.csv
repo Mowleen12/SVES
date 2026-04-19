@@ -1,0 +1,11 @@
+Event_ID,Timestamp,Gate_ID,Ticket_Class,Purchase_Type,Staff_On_Duty,Gate_Status,Alerts,Total_Attendance,Zone_Attendance,Sellout_Rate(%),Drill_Timestamp,Evacuation_Time(min),Congestion_Hotspot
+201,08/13/2024 18:00,South,Economy,At-Gate,22,Open,Blockage,55788,6391,93,08/18/2024 18:00,4.19,Z1
+202,08/04/2024 18:00,West,VIP,Pre,10,Open,None,53566,10561,94,08/19/2024 18:00,5.35,Z10
+203,08/10/2024 18:00,East,VIP,At-Gate,18,Closed,Overcrowding,46497,9455,91,08/19/2024 18:00,4.4,Z6
+204,08/05/2024 18:00,South,VIP,At-Gate,24,Closed,Blockage,43826,14311,96,08/11/2024 18:00,5.73,Z6
+205,08/14/2024 18:00,West,Economy,Pre,15,Open,None,57052,7129,86,08/12/2024 18:00,5.52,Z2
+206,08/15/2024 18:00,South,Regular,Pre,12,Open,None,59331,14624,100,08/21/2024 18:00,3.83,Z9
+207,08/14/2024 18:00,North,VIP,Pre,14,Closed,Blockage,40684,14879,95,08/11/2024 18:00,4.18,Z6
+208,08/09/2024 18:00,West,Economy,At-Gate,20,Open,None,59320,5305,92,08/11/2024 18:00,4.68,Z3
+209,08/06/2024 18:00,South,VIP,Pre,21,Closed,Overcrowding,52985,11053,99,08/13/2024 18:00,3.61,Z7
+210,08/07/2024 18:00,East,Regular,Pre,18,Closed,None,58212,9612,100,08/18/2024 18:00,5.98,Z3
